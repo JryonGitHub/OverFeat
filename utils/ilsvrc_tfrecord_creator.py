@@ -91,8 +91,9 @@ def maketfr(shardnum):
         img = load_image(img)
         height = img.shape[0]
         width = img.shape[1]
+        img = cv2.imencode('.jpeg', img)[1].tostring()
         feature = {'label': _int64_feature(int(label)),
-                   'image': _bytes_feature(img.tostring()),
+                   'image': _bytes_feature(img),
                    'width': _int64_feature(int(width)),
                    'height': _int64_feature(int(height)),
                    }
