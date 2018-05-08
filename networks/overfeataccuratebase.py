@@ -24,7 +24,7 @@ class OverFeatAccurateBase(object):
                                kernel_size=[7, 7],
                                strides=[2, 2],
                                padding='valid',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -38,14 +38,14 @@ class OverFeatAccurateBase(object):
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
                                       strides=[3, 3],
                                       padding='valid',
-                                      data_format='channels_last',
+                                      data_format='channels_first',
                                       name='pool1')
 
         out = tf.layers.conv2d(out, filters=256,
                                kernel_size=[7, 7],
                                strides=[1, 1],
                                padding='valid',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -59,14 +59,14 @@ class OverFeatAccurateBase(object):
         out = tf.layers.max_pooling2d(out, pool_size=[2, 2],
                                       strides=[2, 2],
                                       padding='valid',
-                                      data_format='channels_last',
+                                      data_format='channels_first',
                                       name='pool2')
 
         out = tf.layers.conv2d(out, filters=512,
                                kernel_size=[3, 3],
                                strides=[1, 1],
                                padding='same',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -81,7 +81,7 @@ class OverFeatAccurateBase(object):
                                kernel_size=[3, 3],
                                strides=[1, 1],
                                padding='same',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -96,7 +96,7 @@ class OverFeatAccurateBase(object):
                                kernel_size=[3, 3],
                                strides=[1, 1],
                                padding='same',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -111,7 +111,7 @@ class OverFeatAccurateBase(object):
                                kernel_size=[3, 3],
                                strides=[1, 1],
                                padding='same',
-                               data_format='channels_last',
+                               data_format='channels_first',
                                activation=tf.nn.relu,
                                kernel_initializer=tf.initializers.random_normal(
                                    stddev=0.01,
@@ -125,7 +125,7 @@ class OverFeatAccurateBase(object):
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
                                       strides=[3, 3],
                                       padding='valid',
-                                      data_format='channels_last',
+                                      data_format='channels_first',
                                       name='pool3')
 
         out = tf.layers.flatten(out, name='flatten')
