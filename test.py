@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from data.datasets import traindb
+from data.datasets import traindb, valdb
 import glob
 import os
 
@@ -12,7 +12,7 @@ tfrecorddir = '/data/stars/share/STARSDATASETS/ILSVRC2017/tfrecords/train'
 
 files = list(glob.iglob(os.path.join(tfrecorddir, '*.tfrecords')))
 
-db = traindb(files, batchsize=64, numworkers=1, workerindex=0)
+db = valdb(files, batchsize=64, numworkers=1, workerindex=0)
 
 iterator = db.make_initializable_iterator()
 
