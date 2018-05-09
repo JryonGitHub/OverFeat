@@ -8,6 +8,11 @@ import horovod.tensorflow as hvd
 from utils.visualization import put_kernels_on_grid
 
 
+def activate_iterator(iterator):
+    data = iterator.get_next()
+    return data
+
+
 def train_eval(option_train, option_val):
     hvd.init()
     numworkers = hvd.size()
@@ -55,8 +60,8 @@ def train_eval(option_train, option_val):
     traindata = dbtrain_iter.get_next()
     valdata = dbval_iter.get_next()
 
-    inputdata = tf.cond(tf.equal(netmode, tf.constant(True)), lambda: traindata,
-                        lambda: valdata)
+    inputdata = tf.cond(tf.equal(netmode, tf.constant(True)), lambda: activate_iterator(dbtrain_iter),
+                        lambda: activate_iterator(dbval_iter))
 
     labels = inputdata[1]
 
@@ -102,31 +107,30 @@ def train_eval(option_train, option_val):
 
     # Get parameters to visualize
     # Only get it from worker 0
-    if worker_index == 0:
-        summaries_train = []
-        kernel = tf.get_collection(tf.GraphKeys.VARIABLES, 'model/conv1/kernel')[0]
-        kernel = put_kernels_on_grid(kernel)
-        img_summary = tf.summary.image('model/conv1_filters', kernel)
-        summaries_train.append(img_summary)
-        for num in range(1, 7):
-            kernel = tf.get_collection(tf.GraphKeys.VARIABLES,
-                                       'model/conv{}/kernel'.format(num))[0]
-            hist_summary = tf.summary.histogram('model/conv{}_kernel'.format(num),
-                                                kernel)
-            summaries_train.append(hist_summary)
-            bias = tf.get_collection(tf.GraphKeys.VARIABLES,
-                                     'model/conv{}/bias'.format(num))[0]
-            hist_summary = tf.summary.histogram('model/conv{}_bias'.format(num), bias)
-            summaries_train.append(hist_summary)
-        top1_reduced = hvd.allreduce(top1, average=True)
-        top5_reduced = hvd.allreduce(top5, average=True)
-        loss_reduced = hvd.allreduce(loss, average=True)
-        loss_summary = tf.summary.scalar('Loss', loss_reduced)
-        top1_summary = tf.summary.scalar('Top1_Error', top1_reduced)
-        top5_summary = tf.summary.scalar('Top5_Error', top5_reduced)
-        summaries_train += [loss_summary, top1_summary, top5_summary]
-        summaries_train = tf.summary.merge(summaries_train)
-        summaries_val = tf.summary.merge([loss_summary, top1_summary, top5_summary])
+    summaries_train = []
+    kernel = tf.get_collection(tf.GraphKeys.VARIABLES, 'model/conv1/kernel')[0]
+    kernel = put_kernels_on_grid(kernel)
+    img_summary = tf.summary.image('model/conv1_filters', kernel)
+    summaries_train.append(img_summary)
+    for num in range(1, 7):
+        kernel = tf.get_collection(tf.GraphKeys.VARIABLES,
+                                   'model/conv{}/kernel'.format(num))[0]
+        hist_summary = tf.summary.histogram('model/conv{}_kernel'.format(num),
+                                            kernel)
+        summaries_train.append(hist_summary)
+        bias = tf.get_collection(tf.GraphKeys.VARIABLES,
+                                 'model/conv{}/bias'.format(num))[0]
+        hist_summary = tf.summary.histogram('model/conv{}_bias'.format(num), bias)
+        summaries_train.append(hist_summary)
+    top1_reduced = hvd.allreduce(top1, average=True)
+    top5_reduced = hvd.allreduce(top5, average=True)
+    loss_reduced = hvd.allreduce(loss, average=True)
+    loss_summary = tf.summary.scalar('Loss', loss_reduced)
+    top1_summary = tf.summary.scalar('Top1_Error', top1_reduced)
+    top5_summary = tf.summary.scalar('Top5_Error', top5_reduced)
+    summaries_train += [loss_summary, top1_summary, top5_summary]
+    summaries_train = tf.summary.merge(summaries_train)
+    summaries_val = tf.summary.merge([loss_summary, top1_summary, top5_summary])
 
     latest_chkpt_train = tf.train.latest_checkpoint(option_train[
                                                         'checkpointpath'])
@@ -178,21 +182,20 @@ def train_eval(option_train, option_val):
             while True:
                 try:
                     if display_counter % display_step == 0:
+                        loss_value, top1_err, top5_err, eph, summaries, _, _, _ = sess.run(
+                            [loss_reduced, top1_reduced, top5_reduced, epoch, summaries_train, train_op,
+                             top1_update,
+                             top5_update], feed_dict={net.mode: True, netmode: True})
                         if worker_index == 0:
-                            loss_value, top1_err, top5_err, eph, summaries, _, _, _ = sess.run(
-                                [loss_reduced, top1_reduced, top5_reduced, epoch, summaries_train, train_op,
-                                 top1_update,
-                                 top5_update], feed_dict={net.mode: True, netmode: True})
                             tf.logging.info(
-                                Fore.YELLOW + Style.BRIGHT + 'TRAIN : Epoch[{}], Iter[{}] - Loss={l:.3f], Top1 error={t1:.2f}, Top5 error={t5:.2f}'.format(
-                                    eph, iter_curr, l=loss_value, t1=top1_err, t5=top5_err))
-                            writer_train.add_summary(summaries_train, global_step=iter_curr)
+                                Fore.YELLOW + Style.BRIGHT + 'TRAIN : Epoch[{}], Iter[{}] - Loss={lval:.3f}, Top1 error={t1:.2f}, Top5 error={t5:.2f}'.format(
+                                    eph, iter_curr, lval=loss_value, t1=top1_err, t5=top5_err))
+                            writer_train.add_summary(summaries, global_step=iter_curr)
                             writer_train.flush()
                             tf.logging.debug(
                                 Fore.CYAN + Style.BRIGHT + 'TensorBoard file for training iteration {} has been flushed to disk.'.format(
                                     iter_curr))
-                        else:
-                            sess.run([train_op, top1_update, top5_update], feed_dict={net.mode: True, netmode: True})
+
                     else:
                         sess.run([train_op, top1_update, top5_update], feed_dict={net.mode: True, netmode: True})
 
@@ -206,17 +209,15 @@ def train_eval(option_train, option_val):
                     while True:
                         try:
                             if display_counter % display_step == 0:
+                                loss_value, top1_err, top5_err, eph, summaries, _, _ = sess.run(
+                                    [loss_reduced, top1_reduced, top5_reduced, epoch, summaries_val,
+                                     top1_update, top5_update], feed_dict={net.mode: False, netmode: False})
                                 if worker_index == 0:
-                                    loss_value, top1_err, top5_err, eph, summaries, _, _ = sess.run(
-                                        [loss_reduced, top1_reduced, top5_reduced, epoch, summaries_val,
-                                         top1_update, top5_update], feed_dict={net.mode: False, netmode: False})
                                     tf.logging.info(Fore.YELLOW + Style.BRIGHT + 'VALIDATION : Epoch[{}], Iter[{}] - '
-                                                                                 'Loss={l:.3f], Top1 error={t1:.2f}, '
+                                                                                 'Loss={lval:.3f}, Top1 error={t1:.2f}, '
                                                                                  'Top5 error={t5:.2f}'.format(
-                                        eph, iter_curr, l=loss_value, t1=top1_err, t5=top5_err))
-                                else:
-                                    sess.run([top1_update, top5_update, summaries_val],
-                                             feed_dict={net.mode: False, netmode: False})
+                                        eph, iter_curr, lval=loss_value, t1=top1_err, t5=top5_err))
+
                             else:
                                 if worker_index == 0:
                                     _, _, summaries = sess.run([top1_update, top5_update, summaries_val],
