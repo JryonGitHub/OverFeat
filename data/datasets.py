@@ -11,7 +11,7 @@ def traindb(tfrecord_filelist, batchsize, numworkers, workerindex):
     db = db.map(preprocess_train, num_parallel_calls=mp.cpu_count())
     db = db.prefetch(buffer_size=5000)
     db = db.batch(batch_size=batchsize)
-    db = db.apply(tf.contrib.data.prefetch_to_device('/gpu:{}'.format(workerindex)))
+    #db = db.apply(tf.contrib.data.prefetch_to_device('/gpu:{}'.format(workerindex)))
     return db
 
 
@@ -23,5 +23,5 @@ def valdb(tfrecord_filelist, batchsize, numworkers, workerindex):
     db = db.map(preprocess_val, num_parallel_calls=mp.cpu_count())
     db = db.prefetch(buffer_size=5000)
     db = db.batch(batch_size=batchsize)
-    db = db.apply(tf.contrib.data.prefetch_to_device('/gpu:{}'.format(workerindex)))
+    #db = db.apply(tf.contrib.data.prefetch_to_device('/gpu:{}'.format(workerindex)))
     return db
