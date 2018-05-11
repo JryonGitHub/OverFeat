@@ -15,6 +15,10 @@ class OverFeatAccurateBase(object):
     def mode(self):
         return self._trainmode
 
+    @mode.setter
+    def mode(self, val):
+        self._trainmode=val
+
     @property
     def logits(self):
         return self._logits
@@ -34,6 +38,10 @@ class OverFeatAccurateBase(object):
                                    scale=10 ** (-5)),
                                reuse=tf.AUTO_REUSE,
                                name='conv1')
+
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm1')
 
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
                                       strides=[3, 3],
@@ -56,6 +64,10 @@ class OverFeatAccurateBase(object):
                                reuse=tf.AUTO_REUSE,
                                name='conv2')
 
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm2')
+
         out = tf.layers.max_pooling2d(out, pool_size=[2, 2],
                                       strides=[2, 2],
                                       padding='valid',
@@ -77,6 +89,10 @@ class OverFeatAccurateBase(object):
                                reuse=tf.AUTO_REUSE,
                                name='conv3')
 
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm3')
+
         out = tf.layers.conv2d(out, filters=512,
                                kernel_size=[3, 3],
                                strides=[1, 1],
@@ -91,6 +107,10 @@ class OverFeatAccurateBase(object):
                                    scale=10 ** (-5)),
                                reuse=tf.AUTO_REUSE,
                                name='conv4')
+
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm4')
 
         out = tf.layers.conv2d(out, filters=1024,
                                kernel_size=[3, 3],
@@ -107,6 +127,10 @@ class OverFeatAccurateBase(object):
                                reuse=tf.AUTO_REUSE,
                                name='conv5')
 
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm5')
+
         out = tf.layers.conv2d(out, filters=1024,
                                kernel_size=[3, 3],
                                strides=[1, 1],
@@ -121,6 +145,10 @@ class OverFeatAccurateBase(object):
                                    scale=10 ** (-5)),
                                reuse=tf.AUTO_REUSE,
                                name='conv6')
+
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            name='batchnorm6')
 
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
                                       strides=[3, 3],
