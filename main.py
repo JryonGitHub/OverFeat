@@ -5,9 +5,9 @@ import tensorflow as tf
 tf.logging.set_verbosity(tf.logging.INFO)
 
 options_train = {
-    'tfrecordpath': '/data/stars/share/STARSDATASETS/ILSVRC2017/tfrecords/train',
-    'batchsize': 32,
-    'checkpointpath': '/home/uujjwal/ujjwal-projects/OverFeat/checkpoints/overfeat-accurate.ckpt',
+    'tfrecordpath': '/local/ujjwal/tfrecords/train',
+    'batchsize': 256,
+    'checkpointpath': '/home/uujjwal/ujjwal-projects/OverFeat/checkpoints',
     'endepoch': 90,
     'logpath': '/home/uujjwal/ujjwal-projects/OverFeat/tboard/train',
     'display_step': 100
@@ -15,8 +15,8 @@ options_train = {
 }
 
 options_val = {
-    'tfrecordpath': '/data/stars/share/STARSDATASETS/ILSVRC2017/tfrecords/val',
-    'batchsize': 128,
+    'tfrecordpath': '/local/ujjwal/tfrecords/val',
+    'batchsize': 256,
     'logpath': '/home/uujjwal/ujjwal-projects/OverFeat/tboard/val',
     'display_step': 100
 }
