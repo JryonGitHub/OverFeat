@@ -17,7 +17,7 @@ class OverFeatAccurateBase(object):
 
     @mode.setter
     def mode(self, val):
-        self._trainmode=val
+        self._trainmode = val
 
     @property
     def logits(self):
@@ -35,12 +35,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv1')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm1')
 
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
@@ -60,12 +60,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv2')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm2')
 
         out = tf.layers.max_pooling2d(out, pool_size=[2, 2],
@@ -85,12 +85,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv3')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm3')
 
         out = tf.layers.conv2d(out, filters=512,
@@ -104,12 +104,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv4')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm4')
 
         out = tf.layers.conv2d(out, filters=1024,
@@ -123,12 +123,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv5')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm5')
 
         out = tf.layers.conv2d(out, filters=1024,
@@ -142,12 +142,12 @@ class OverFeatAccurateBase(object):
                                    seed=0),
                                bias_initializer=tf.initializers.constant(0),
                                kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                   scale=10 ** (-5)),
-                               reuse=tf.AUTO_REUSE,
+                                   scale=0.00001),
                                name='conv6')
 
         out = tf.layers.batch_normalization(out, fused=True,
                                             renorm=True,
+                                            training=self.mode,
                                             name='batchnorm6')
 
         out = tf.layers.max_pooling2d(out, pool_size=[3, 3],
@@ -164,14 +164,14 @@ class OverFeatAccurateBase(object):
                                   seed=0),
                               bias_initializer=tf.initializers.constant(0),
                               kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                  scale=10 ** (-5)),
-                              reuse=tf.AUTO_REUSE,
+                                  scale=0.00001),
                               name='full1'
                               )
 
-        out = tf.cond(self.mode,
-                      lambda: tf.layers.dropout(
-                          out, seed=0), lambda: out)
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            training=self.mode,
+                                            name='batchnorm7')
 
         out = tf.layers.dense(out, units=4096, activation=tf.nn.relu,
                               kernel_initializer=tf.initializers.random_normal(
@@ -179,22 +179,20 @@ class OverFeatAccurateBase(object):
                                   seed=0),
                               bias_initializer=tf.initializers.constant(0),
                               kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                  scale=10 ** (-5)),
-                              reuse=tf.AUTO_REUSE,
+                                  scale=0.00001),
                               name='full2'
                               )
-        out = tf.cond(self.mode,
-                      lambda: tf.layers.dropout(
-                          out, seed=0), lambda: out)
+
+        out = tf.layers.batch_normalization(out, fused=True,
+                                            renorm=True,
+                                            training=self.mode,
+                                            name='batchnorm8')
+
         logits = tf.layers.dense(out, units=self.numclasses,
-                                 activation=tf.nn.relu,
                                  kernel_initializer=tf.initializers.random_normal(
                                      stddev=0.01,
                                      seed=0),
                                  bias_initializer=tf.initializers.constant(0),
-                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(
-                                     scale=10 ** (-5)),
-                                 reuse=tf.AUTO_REUSE,
                                  name='output'
                                  )
 

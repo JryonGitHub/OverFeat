@@ -6,7 +6,7 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 options_train = {
     'tfrecordpath': '/local/ujjwal/tfrecords/train',
-    'batchsize': 256,
+    'batchsize': 128,
     'checkpointpath': '/home/uujjwal/ujjwal-projects/OverFeat/checkpoints',
     'endepoch': 90,
     'logpath': '/home/uujjwal/ujjwal-projects/OverFeat/tboard/train',
